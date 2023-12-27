@@ -37,6 +37,20 @@ class Form {
         else
             throw new Error(`No field with name "${name}"`);
     }
+    getValue(name) {
+        const field = this.fields[name];
+        if (field)
+            return field.value.val;
+        else
+            throw new Error(`No field with name "${name}"`);
+    }
+    setValue(name, value) {
+        const field = this.fields[name];
+        if (field)
+            field.value.val = value;
+        else
+            throw new Error(`No field with name "${name}"`);
+    }
     observe(...names) {
         const values = {};
         if (names.length > 0) {
@@ -52,20 +66,6 @@ class Form {
             }
         }
         return values;
-    }
-    getValue(name) {
-        const field = this.fields[name];
-        if (field)
-            return field.value.val;
-        else
-            throw new Error(`No field with name "${name}"`);
-    }
-    setValue(name, value) {
-        const field = this.fields[name];
-        if (field)
-            field.value.val = value;
-        else
-            throw new Error(`No field with name "${name}"`);
     }
     reset(...names) {
         if (names.length > 0) {
@@ -85,6 +85,15 @@ class Form {
             }
         }
     }
+    handleSubmit = (handler) => (e) => {
+        e.preventDefault();
+        const values = {};
+        for (const key in this.fields) {
+            const field = this.fields[key];
+            values[key] = field.value.val;
+        }
+        handler(values);
+    };
 }
 
 export { Form };

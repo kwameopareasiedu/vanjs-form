@@ -25,11 +25,15 @@ export default function App() {
     );
   };
 
+  const handleSubmit = f.handleSubmit((values) => {
+    console.log(values);
+  });
+
   return div(
-    { className: "flex flex-col justify-start gap-4 p-6 w-full max-w-[540px]" },
+    { className: "flex flex-col justify-start gap-4 p-6 w-full max-w-[640px]" },
     h1("VanJS Form"),
     form(
-      { className: "flex flex-col gap-2" },
+      { className: "flex flex-col gap-2", onsubmit: handleSubmit },
       div(
         { className: "flex items-center gap-2" },
         input(
@@ -66,7 +70,8 @@ export default function App() {
         ),
         Button({ type: "button", onclick: () => f.reset("gender") }, "Reset"),
         Button({ type: "button", onclick: () => f.setValue("gender", generateRandomGender()) }, "Set Rnd")
-      )
+      ),
+      Button({ type: "submit" }, "Submit")
     ),
     p(
       { className: "text-sm text-gray-500 font-mono" },
