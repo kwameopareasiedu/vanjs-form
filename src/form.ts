@@ -24,7 +24,7 @@ export class Form<T extends Record<string, unknown>> {
     }
   }
 
-  getFieldProps(name: keyof T, additionalProps?: Partial<HTMLInputElement>) {
+  register(name: keyof T, additionalProps?: Partial<HTMLInputElement>) {
     const field: Field<unknown> = this.fields[name];
 
     if (field) {
@@ -66,7 +66,17 @@ export class Form<T extends Record<string, unknown>> {
     return values;
   }
 
-  // setValue
+  getValue(name: keyof T) {
+    const field: Field<unknown> = this.fields[name];
+    if (field) return field.value.val;
+    else throw new Error(`No field with name "${name as string}"`);
+  }
+
+  setValue(name: keyof T, value: unknown) {
+    const field: Field<unknown> = this.fields[name];
+    if (field) field.value.val = value;
+    else throw new Error(`No field with name "${name as string}"`);
+  }
 
   reset<K extends keyof T>(...names: K[]) {
     if (names.length > 0) {

@@ -15,7 +15,7 @@ class Form {
             };
         }
     }
-    getFieldProps(name, additionalProps) {
+    register(name, additionalProps) {
         const field = this.fields[name];
         if (field) {
             const handleInput = (e) => {
@@ -53,7 +53,20 @@ class Form {
         }
         return values;
     }
-    // setValue
+    getValue(name) {
+        const field = this.fields[name];
+        if (field)
+            return field.value.val;
+        else
+            throw new Error(`No field with name "${name}"`);
+    }
+    setValue(name, value) {
+        const field = this.fields[name];
+        if (field)
+            field.value.val = value;
+        else
+            throw new Error(`No field with name "${name}"`);
+    }
     reset(...names) {
         if (names.length > 0) {
             for (const name of names) {
