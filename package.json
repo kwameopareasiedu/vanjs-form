@@ -1,0 +1,31 @@
+{
+  "name": "vanjs-form",
+  "version": "0.1.0",
+  "description": "The only form library you'll need for VanJS",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "author": "Kwame Opare Asiedu",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "rollup -c --watch",
+    "build": "rollup -c",
+    "prepublish": "yarn build"
+  },
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@typescript-eslint/eslint-plugin": "^6.16.0",
+    "@typescript-eslint/parser": "^6.16.0",
+    "eslint": "^8.56.0",
+    "prettier": "3.1.1",
+    "rollup": "^4.9.1",
+    "tslib": "^2.6.2"
+  },
+  "dependencies": {
+    "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "vanjs-core": "^1.2.7"
+  }
+}
