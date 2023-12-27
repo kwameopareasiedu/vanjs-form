@@ -24,7 +24,6 @@ export class Form<T extends Record<string, unknown>> {
     }
   }
 
-  // Returns an object containing the field states with helper methods to update in the form state
   getFieldProps(name: keyof T, additionalProps?: Partial<HTMLInputElement>) {
     const field: Field<unknown> = this.fields[name];
 
@@ -60,19 +59,30 @@ export class Form<T extends Record<string, unknown>> {
     } else {
       for (const key in this.fields) {
         const field: Field<unknown> = this.fields[key];
-        (values as T)[key] = field.value.val;
+        (values as Record<keyof T, unknown>)[key] = field.value.val;
       }
     }
 
     return values;
   }
 
-  // Reset the form fields to their initial values
-  reset() {
-    for (const key in this.fields) {
-      const field: Field<unknown> = this.fields[key];
-      field.value.val = this.initialValues[key];
-      field.touched.val = null;
+  // setValue
+
+  reset<K extends keyof T>(...names: K[]) {
+    if (names.length > 0) {
+      for (const name of names) {
+        const field: Field<unknown> = this.fields[name];
+        field.value.val = this.initialValues[name];
+        field.touched.val = false;
+        field.error.val = null;
+      }
+    } else {
+      for (const key in this.fields) {
+        const field: Field<unknown> = this.fields[key];
+        field.value.val = this.initialValues[key];
+        field.touched.val = false;
+        field.error.val = null;
+      }
     }
   }
 }

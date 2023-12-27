@@ -3,6 +3,7 @@
     "target": "ESNext",
     "module": "ESNext",
     "esModuleInterop": true,
+    "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "strict": true

@@ -13,4 +13,6 @@ export declare class Form<T extends Record<string, unknown>> {
   public observe<K extends keyof T>(...names: K[]): Record<K, unknown>;
 
   public reset(): void;
+
+  public reset<K extends keyof T>(...names: K[]);
 }

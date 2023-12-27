@@ -23,7 +23,8 @@
     "tslib": "^2.6.2"
   },
   "dependencies": {
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vanjs-core": "^1.2.7"
   },
   "peerDependencies": {
     "vanjs-core": "^1.2.7"

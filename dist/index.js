@@ -15,7 +15,6 @@ class Form {
             };
         }
     }
-    // Returns an object containing the field states with helper methods to update in the form state
     getFieldProps(name, additionalProps) {
         const field = this.fields[name];
         if (field) {
@@ -54,12 +53,23 @@ class Form {
         }
         return values;
     }
-    // Reset the form fields to their initial values
-    reset() {
-        for (const key in this.fields) {
-            const field = this.fields[key];
-            field.value.val = this.initialValues[key];
-            field.touched.val = null;
+    // setValue
+    reset(...names) {
+        if (names.length > 0) {
+            for (const name of names) {
+                const field = this.fields[name];
+                field.value.val = this.initialValues[name];
+                field.touched.val = false;
+                field.error.val = null;
+            }
+        }
+        else {
+            for (const key in this.fields) {
+                const field = this.fields[key];
+                field.value.val = this.initialValues[key];
+                field.touched.val = false;
+                field.error.val = null;
+            }
         }
     }
 }
