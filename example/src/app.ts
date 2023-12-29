@@ -23,7 +23,7 @@ const form = new Form({
 });
 
 export default function App() {
-  const observed = form.watch("name", "gender", "email", "age");
+  const watched = form.watch("name", "gender", "email", "age");
 
   const alertValues = () => {
     const name = form.get("name") ?? "N/A";
@@ -88,7 +88,7 @@ export default function App() {
     ),
     p(
       { className: "text-sm text-gray-500 font-mono" },
-      () => `{ Name: "${observed.val.name}", Email: "${observed.val.email}", Gender: "${observed.val.gender}" }`
+      () => `{ Name: "${watched.val.name}", Email: "${watched.val.email}", Gender: "${watched.val.gender}" }`
     ),
     Button({ onclick: () => form.reset() }, "Reset"),
     Button({ onclick: alertValues }, "Alert")

@@ -94,17 +94,6 @@ export class Form<T extends Record<string, unknown>> {
     return field.error.val;
   }
 
-  // errors() {
-  //   const errors: Record<KeyOf<T>, string | null> = {} as Record<KeyOf<T>, string | null>;
-  //
-  //   for (const key in this.fields) {
-  //     const field: Field<unknown> = this.fields[key];
-  //     errors[key] = field.error.val;
-  //   }
-  //
-  //   return errors;
-  // }
-
   watch<K extends KeyOf<T>>(...names: K[]) {
     return van.derive(() => {
       const values: Record<K, T[K]> = {} as Record<K, T[K]>;
