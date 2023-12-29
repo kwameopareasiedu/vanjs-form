@@ -97,7 +97,7 @@ class Form {
                 const field = this.fields[key];
                 values[key] = field.value.val;
             }
-            handler(values);
+            this.validator(values).then((values) => handler(values));
         };
     }
 }

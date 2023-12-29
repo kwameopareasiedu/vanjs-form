@@ -1,7 +1,5 @@
 import type { ObjectSchema, ValidationError } from "yup";
 
-export type FormValidator<T> = (values: T) => Promise<Record<keyof T, unknown>>;
-
 export const yupValidator = <T extends Record<string, unknown>>(schema: ObjectSchema<T>) => {
   return (values: T) => {
     return schema

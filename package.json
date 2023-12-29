@@ -28,6 +28,7 @@
     "yup": "^1.3.3"
   },
   "peerDependencies": {
-    "vanjs-core": "^1.2.7"
+    "vanjs-core": "^1.2.7",
+    "yup": "^1.3.3"
   }
 }

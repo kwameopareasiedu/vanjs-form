@@ -1,23 +1,18 @@
-import { State } from "vanjs-core";
-
 type KeyOf<T> = keyof T;
 
-// const target = { name: "", email: "", gender: "", age: 0 };
-// type T = typeof target;
-// type TK = keyof typeof target;
-// const names: TK[] = ["name", "gender", "email", "age"];
-// type Test1 = { [I in typeof names[number]]: I extends TK ? T[I] : never };
-// type Test2 = { [I in typeof names[number]]: T[I] };
+type ValueOf<T> = T[KeyOf<T>];
+
+type FormValidator<T> = (values: T) => Promise<Record<keyof T, unknown>>;
 
 export declare class Form<T extends Record<string, unknown>> {
-  constructor(args: { initialValues: T });
+  constructor(args: { initialValues: T; validator?: FormValidator<T> });
 
   public register<K extends KeyOf<T>>(
     name: K,
     additionalProps?: Partial<HTMLInputElement>
-  ): Pick<HTMLInputElement, "name" | "oninput" | "onfocus"> & { value: State<T[typeof name]> };
+  ): Pick<HTMLInputElement, "name" | "oninput" | "onfocus"> & { value: import("vanjs-core").State<T[typeof name]> };
 
-  public getValue(name: KeyOf<T>): T[typeof name];
+  public getValue<K extends KeyOf<T>>(name: K): T[typeof name];
 
   public setValue<K extends KeyOf<T>>(name: K, value: T[typeof name]);
 
@@ -31,3 +26,5 @@ export declare class Form<T extends Record<string, unknown>> {
 
   public handleSubmit(handler: (values: T) => void): (e: SubmitEvent) => void;
 }
+
+export declare const yupValidator: <T>(schema: import("yup").Schema) => FormValidator<T>;

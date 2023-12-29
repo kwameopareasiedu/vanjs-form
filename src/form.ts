@@ -1,12 +1,16 @@
 import van, { State } from "vanjs-core";
-import { FormValidator } from "./validators";
-import { KeyOf, ValueOf } from "./types";
+
+type KeyOf<T> = keyof T;
+
+type ValueOf<T> = T[KeyOf<T>];
 
 interface Field<T> {
   value: State<T>;
   touched: State<boolean>;
   error: State<string | null>;
 }
+
+type FormValidator<T> = (values: T) => Promise<T>;
 
 export class Form<T extends Record<string, unknown>> {
   private readonly initialValues: T;
@@ -102,7 +106,7 @@ export class Form<T extends Record<string, unknown>> {
     }
   }
 
-  handleSubmit(handler: (values: Record<KeyOf<T>, ValueOf<T>>) => void) {
+  handleSubmit(handler: (values: T) => void) {
     return (e: SubmitEvent) => {
       e.preventDefault();
 
@@ -113,7 +117,7 @@ export class Form<T extends Record<string, unknown>> {
         values[key] = field.value.val as never;
       }
 
-      handler(values);
+      this.validator(values).then((values) => handler(values));
     };
   }
 }

@@ -1,48 +1,42 @@
 import "./index.css";
 import van, { ChildDom, Props } from "vanjs-core";
-import { Form } from "vanjs-form";
+import { Form, yupValidator } from "vanjs-form";
 import * as yup from "yup";
-import { ValidationError } from "yup";
 
 const { div, form: formEl, input, h1, select, option, button, p } = van.tags;
 
-const validator = yup.object({
-  name: yup.string().required("Required").length(6, "Must be 6 chars"),
-  email: yup.string().required("Required"),
-  gender: yup.string().required("Required").oneOf(["Male", "Female"], "Valid gender is required")
+const form = new Form({
+  initialValues: {
+    name: "",
+    email: "",
+    gender: "",
+    age: 0
+  },
+  validator: yupValidator(
+    yup.object({
+      name: yup.string().required("Required").length(6, "Must be 6 chars"),
+      email: yup.string().required("Required").email("Must be a valid email"),
+      gender: yup.string().required("Required").oneOf(["Male", "Female"], "Valid gender is required")
+    })
+  )
 });
 
 export default function App() {
-  const form = new Form({
-    initialValues: {
-      name: "",
-      email: "",
-      gender: "",
-      age: {}
-    }
-  });
-
-  const observables = van.derive(() => {
+  const data = van.derive(() => {
     return form.observe("name", "gender", "email", "age");
   });
 
   const alertValues = () => {
-    alert(
-      `{ Name: ${form.getValue("name") || "N/A"}, Email: ${form.getValue("email") || "N/A"}, Gender: ${
-        form.getValue("gender") || "N/A"
-      } }`
-    );
+    const name = form.getValue("name") ?? "N/A";
+    const email = form.getValue("name") ?? "N/A";
+    const gender = form.getValue("gender") ?? "N/A";
+    const age = form.getValue("age") ?? "N/A";
+
+    alert(`{ Name: ${name}, Email: ${email}, Gender: ${gender} }, Age: ${age}`);
   };
 
   const handleSubmit = form.handleSubmit((values) => {
-    validator
-      .validate(values, { abortEarly: false })
-      .then((values) => console.log(values))
-      .catch((err: ValidationError) => {
-        for (let i = 0; i < err.errors.length; i++) {
-          console.error({ err: err.errors[i], path: err.inner[i].path });
-        }
-      });
+    console.log(values);
   });
 
   return div(
@@ -92,9 +86,7 @@ export default function App() {
     p(
       { className: "text-sm text-gray-500 font-mono" },
       () =>
-        `{ Name: ${observables.val.name || "N/A"}, Email: ${observables.val.email || "N/A"}, Gender: ${
-          observables.val.gender || "N/A"
-        } }`
+        `{ Name: ${data.val.name || "N/A"}, Email: ${data.val.email || "N/A"}, Gender: ${data.val.gender || "N/A"} }`
     ),
     Button({ onclick: () => form.reset() }, "Reset"),
     Button({ onclick: alertValues }, "Alert")
