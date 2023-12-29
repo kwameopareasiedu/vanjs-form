@@ -1,7 +1,7 @@
 {
   "name": "vanjs-form",
   "version": "0.1.0",
-  "description": "The only form library you'll need for VanJS",
+  "description": "Fully typed form state management library (with validation) for VanJS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Kwame Opare Asiedu",

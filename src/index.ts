@@ -37,7 +37,7 @@ export class Form<T extends Record<string, unknown>> {
   }
 
   register<K extends KeyOf<T>>(name: K, additionalProps?: Partial<HTMLInputElement>) {
-    const field: Field<T[typeof name]> = this.fields[name] as never;
+    const field = this.fields[name];
 
     if (field) {
       const handleInput = (e: KeyboardEvent) => {
@@ -48,7 +48,7 @@ export class Form<T extends Record<string, unknown>> {
           const values: T = {} as T;
 
           for (const key in this.fields) {
-            const field: Field<unknown> = this.fields[key];
+            const field = this.fields[key];
             values[key] = field.value.val as never;
           }
 
@@ -100,12 +100,12 @@ export class Form<T extends Record<string, unknown>> {
 
       if (names.length > 0) {
         for (const name of names) {
-          const field: Field<unknown> = this.fields[name];
+          const field = this.fields[name];
           values[name] = field.value.val as never;
         }
       } else {
         for (const key in this.fields) {
-          const field: Field<unknown> = this.fields[key];
+          const field = this.fields[key];
           values[key as never] = field.value.val as never;
         }
       }
@@ -117,14 +117,14 @@ export class Form<T extends Record<string, unknown>> {
   reset<K extends keyof T>(...names: K[]) {
     if (names.length > 0) {
       for (const name of names) {
-        const field: Field<unknown> = this.fields[name];
+        const field = this.fields[name];
         field.value.val = this.initialValues[name];
         field.touched.val = false;
         field.error.val = "";
       }
     } else {
       for (const key in this.fields) {
-        const field: Field<unknown> = this.fields[key];
+        const field = this.fields[key];
         field.value.val = this.initialValues[key];
         field.touched.val = false;
         field.error.val = "";
@@ -139,7 +139,7 @@ export class Form<T extends Record<string, unknown>> {
       const values: T = {} as T;
 
       for (const key in this.fields) {
-        const field: Field<unknown> = this.fields[key];
+        const field = this.fields[key];
         values[key] = field.value.val as never;
       }
 
@@ -147,12 +147,12 @@ export class Form<T extends Record<string, unknown>> {
         if (valuesOrErrors instanceof FormError) {
           for (const name in this.fields) {
             const errorString = valuesOrErrors.errors[name];
-            const field: Field<unknown> = this.fields[name];
+            const field = this.fields[name];
             if (field) field.error.val = errorString ?? "";
           }
         } else {
           for (const name in this.fields) {
-            const field: Field<unknown> = this.fields[name];
+            const field = this.fields[name];
             field.error.val = "";
           }
 
