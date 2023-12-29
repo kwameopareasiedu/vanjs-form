@@ -5,7 +5,7 @@ type ValueOf<T> = T[KeyOf<T>];
 type FormValidator<T> = (values: T) => Promise<Record<keyof T, unknown>>;
 
 export declare class Form<T extends Record<string, unknown>> {
-  constructor(args: { initialValues: T; validator?: FormValidator<T> });
+  constructor(args: { initialValues: T; validator?: FormValidator<T>; validationMode?: "oninput" | "onsubmit" });
 
   public register<K extends KeyOf<T>>(
     name: K,

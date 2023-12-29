@@ -4,12 +4,12 @@ class Form {
     initialValues;
     fields;
     validator;
-    // TODO: Implement input mode as input/change
-    // TODO: Implement validation mode as change/submit
+    validationMode;
     constructor(args) {
         this.initialValues = args.initialValues;
         this.fields = {};
         this.validator = args.validator ?? ((values) => Promise.resolve(values));
+        this.validationMode = args.validationMode ?? "onsubmit";
         // From the initial values, register the fields
         for (const key in args.initialValues) {
             this.fields[key] = {
@@ -25,6 +25,21 @@ class Form {
             const handleInput = (e) => {
                 field.value.val = e.target.value;
                 additionalProps?.oninput?.(e);
+                if (this.validationMode === "oninput") {
+                    const values = {};
+                    for (const key in this.fields) {
+                        const field = this.fields[key];
+                        values[key] = field.value.val;
+                    }
+                    this.validator(values).then((valuesOrErrors) => {
+                        if (valuesOrErrors instanceof FormError) {
+                            const errorString = valuesOrErrors.errors[name];
+                            field.error.val = errorString ?? "";
+                        }
+                        else
+                            field.error.val = "";
+                    });
+                }
             };
             const handleFocus = (e) => {
                 field.touched.val = true;

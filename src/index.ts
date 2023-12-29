@@ -18,13 +18,13 @@ export class Form<T extends Record<string, unknown>> {
   private readonly initialValues: T;
   private readonly fields: Record<KeyOf<T>, Field<ValueOf<T>>>;
   private readonly validator: Validator<T>;
-  // TODO: Implement input mode as input/change
-  // TODO: Implement validation mode as change/submit
+  private readonly validationMode: "oninput" | "onsubmit";
 
-  constructor(args: { initialValues: T; validator?: Validator<T> }) {
+  constructor(args: { initialValues: T; validator?: Validator<T>; validationMode?: "oninput" | "onsubmit" }) {
     this.initialValues = args.initialValues;
     this.fields = {} as Record<KeyOf<T>, Field<ValueOf<T>>>;
     this.validator = args.validator ?? ((values: T) => Promise.resolve(values));
+    this.validationMode = args.validationMode ?? "onsubmit";
 
     // From the initial values, register the fields
     for (const key in args.initialValues) {
@@ -43,6 +43,22 @@ export class Form<T extends Record<string, unknown>> {
       const handleInput = (e: KeyboardEvent) => {
         field.value.val = (e.target as HTMLInputElement).value as never;
         (additionalProps as HTMLInputElement)?.oninput?.(e);
+
+        if (this.validationMode === "oninput") {
+          const values: T = {} as T;
+
+          for (const key in this.fields) {
+            const field: Field<unknown> = this.fields[key];
+            values[key] = field.value.val as never;
+          }
+
+          this.validator(values).then((valuesOrErrors) => {
+            if (valuesOrErrors instanceof FormError) {
+              const errorString = valuesOrErrors.errors[name];
+              field.error.val = errorString ?? "";
+            } else field.error.val = "";
+          });
+        }
       };
 
       const handleFocus = (e: FocusEvent) => {

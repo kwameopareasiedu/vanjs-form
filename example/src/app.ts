@@ -18,7 +18,8 @@ const form = new Form({
       email: yup.string().required("Required").email("Must be a valid email"),
       gender: yup.string().required("Required").oneOf(["Male", "Female"], "Valid gender is required")
     })
-  )
+  ),
+  validationMode: "oninput"
 });
 
 export default function App() {
