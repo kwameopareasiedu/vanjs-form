@@ -3,9 +3,13 @@ import van from 'vanjs-core';
 class Form {
     initialValues;
     fields;
+    validator;
+    // TODO: Implement input mode as input/change
+    // TODO: Implement validation mode as change/submit
     constructor(args) {
         this.initialValues = args.initialValues;
         this.fields = {};
+        this.validator = args.validator ?? ((values) => Promise.resolve(values));
         // From the initial values, register the fields
         for (const key in args.initialValues) {
             this.fields[key] = {
@@ -85,15 +89,32 @@ class Form {
             }
         }
     }
-    handleSubmit = (handler) => (e) => {
-        e.preventDefault();
-        const values = {};
-        for (const key in this.fields) {
-            const field = this.fields[key];
-            values[key] = field.value.val;
-        }
-        handler(values);
-    };
+    handleSubmit(handler) {
+        return (e) => {
+            e.preventDefault();
+            const values = {};
+            for (const key in this.fields) {
+                const field = this.fields[key];
+                values[key] = field.value.val;
+            }
+            handler(values);
+        };
+    }
 }
 
-export { Form };
+const yupValidator = (schema) => {
+    return (values) => {
+        return schema
+            .validate(values, { abortEarly: false })
+            .then((values) => values)
+            .catch((err) => {
+            const errors = {};
+            for (let i = 0; i < err.errors.length; i++) {
+                errors[err.inner[i].path] = err.errors[i];
+            }
+            throw errors;
+        });
+    };
+};
+
+export { Form, yupValidator };

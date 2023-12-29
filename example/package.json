@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "vanjs-core": "^1.2.7",
-    "vanjs-ext": "^0.2.0"
+    "vanjs-ext": "^0.2.0",
+    "yup": "^1.3.3"
   }
 }

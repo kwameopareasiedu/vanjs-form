@@ -1,18 +1,24 @@
-import van, { PropValue, State } from "vanjs-core";
+import van, { State } from "vanjs-core";
+import { FormValidator } from "./validators";
+import { KeyOf, ValueOf } from "./types";
 
-interface Field<V> {
-  value: State<V>;
+interface Field<T> {
+  value: State<T>;
   touched: State<boolean>;
   error: State<string | null>;
 }
 
 export class Form<T extends Record<string, unknown>> {
   private readonly initialValues: T;
-  private readonly fields: Record<keyof T, Field<unknown>>;
+  private readonly fields: Record<KeyOf<T>, Field<ValueOf<T>>>;
+  private readonly validator: FormValidator<T>;
+  // TODO: Implement input mode as input/change
+  // TODO: Implement validation mode as change/submit
 
-  constructor(args: { initialValues: T }) {
+  constructor(args: { initialValues: T; validator?: FormValidator<T> }) {
     this.initialValues = args.initialValues;
-    this.fields = {} as Record<keyof T, Field<unknown>>;
+    this.fields = {} as Record<KeyOf<T>, Field<ValueOf<T>>>;
+    this.validator = args.validator ?? ((values: T) => Promise.resolve(values));
 
     // From the initial values, register the fields
     for (const key in args.initialValues) {
@@ -24,12 +30,12 @@ export class Form<T extends Record<string, unknown>> {
     }
   }
 
-  register(name: keyof T, additionalProps?: Partial<HTMLInputElement>) {
-    const field: Field<unknown> = this.fields[name];
+  register<K extends KeyOf<T>>(name: K, additionalProps?: Partial<HTMLInputElement>) {
+    const field: Field<T[typeof name]> = this.fields[name] as never;
 
     if (field) {
       const handleInput = (e: KeyboardEvent) => {
-        field.value.val = (e.target as HTMLInputElement).value;
+        field.value.val = (e.target as HTMLInputElement).value as never;
         (additionalProps as HTMLInputElement)?.oninput?.(e);
       };
 
@@ -44,34 +50,34 @@ export class Form<T extends Record<string, unknown>> {
         value: field.value,
         oninput: handleInput,
         onfocus: handleFocus
-      } as Pick<HTMLInputElement, "name" | "oninput" | "onfocus"> & { value: State<PropValue> };
+      } as Pick<HTMLInputElement, "name" | "oninput" | "onfocus"> & { value: State<T[typeof name]> };
     } else throw new Error(`No field with name "${name as string}"`);
   }
 
   getValue(name: keyof T) {
-    const field: Field<unknown> = this.fields[name];
+    const field: Field<T[typeof name]> = this.fields[name];
     if (field) return field.value.val;
     else throw new Error(`No field with name "${name as string}"`);
   }
 
-  setValue(name: keyof T, value: unknown) {
-    const field: Field<unknown> = this.fields[name];
+  setValue<K extends KeyOf<T>>(name: K, value: T[typeof name]) {
+    const field: Field<T[typeof name]> = this.fields[name] as never;
     if (field) field.value.val = value;
     else throw new Error(`No field with name "${name as string}"`);
   }
 
-  observe<K extends keyof T>(...names: K[]) {
-    const values: Record<K, unknown> = {} as Record<K, unknown>;
+  observe<K extends KeyOf<T>>(...names: K[]) {
+    const values: Record<K, T[K]> = {} as Record<K, T[K]>;
 
     if (names.length > 0) {
       for (const name of names) {
         const field: Field<unknown> = this.fields[name];
-        values[name] = field.value.val;
+        values[name] = field.value.val as never;
       }
     } else {
       for (const key in this.fields) {
         const field: Field<unknown> = this.fields[key];
-        (values as Record<keyof T, unknown>)[key] = field.value.val;
+        values[key as never] = field.value.val as never;
       }
     }
 
@@ -96,16 +102,18 @@ export class Form<T extends Record<string, unknown>> {
     }
   }
 
-  handleSubmit = (handler: (values: Record<keyof T, unknown>) => void) => (e: SubmitEvent) => {
-    e.preventDefault();
+  handleSubmit(handler: (values: Record<KeyOf<T>, ValueOf<T>>) => void) {
+    return (e: SubmitEvent) => {
+      e.preventDefault();
 
-    const values: Record<keyof T, unknown> = {} as Record<keyof T, unknown>;
+      const values: T = {} as T;
 
-    for (const key in this.fields) {
-      const field: Field<unknown> = this.fields[key];
-      values[key] = field.value.val;
-    }
+      for (const key in this.fields) {
+        const field: Field<unknown> = this.fields[key];
+        values[key] = field.value.val as never;
+      }
 
-    handler(values);
-  };
+      handler(values);
+    };
+  }
 }

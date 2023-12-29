@@ -1,75 +1,91 @@
 import "./index.css";
 import van, { ChildDom, Props } from "vanjs-core";
 import { Form } from "vanjs-form";
+import * as yup from "yup";
+import { ValidationError } from "yup";
 
-const { div, form, input, h1, select, option, button, p } = van.tags;
+const { div, form: formEl, input, h1, select, option, button, p } = van.tags;
+
+const validator = yup.object({
+  name: yup.string().required("Required").length(6, "Must be 6 chars"),
+  email: yup.string().required("Required"),
+  gender: yup.string().required("Required").oneOf(["Male", "Female"], "Valid gender is required")
+});
 
 export default function App() {
-  const f = new Form({
+  const form = new Form({
     initialValues: {
       name: "",
       email: "",
-      gender: ""
+      gender: "",
+      age: {}
     }
   });
 
   const observables = van.derive(() => {
-    return f.observe("name", "gender", "email");
+    return form.observe("name", "gender", "email", "age");
   });
 
   const alertValues = () => {
     alert(
-      `{ Name: ${f.getValue("name") || "N/A"}, Email: ${f.getValue("email") || "N/A"}, Gender: ${
-        f.getValue("gender") || "N/A"
+      `{ Name: ${form.getValue("name") || "N/A"}, Email: ${form.getValue("email") || "N/A"}, Gender: ${
+        form.getValue("gender") || "N/A"
       } }`
     );
   };
 
-  const handleSubmit = f.handleSubmit((values) => {
-    console.log(values);
+  const handleSubmit = form.handleSubmit((values) => {
+    validator
+      .validate(values, { abortEarly: false })
+      .then((values) => console.log(values))
+      .catch((err: ValidationError) => {
+        for (let i = 0; i < err.errors.length; i++) {
+          console.error({ err: err.errors[i], path: err.inner[i].path });
+        }
+      });
   });
 
   return div(
     { className: "flex flex-col justify-start gap-4 p-6 w-full max-w-[640px]" },
     h1("VanJS Form"),
-    form(
+    formEl(
       { className: "flex flex-col gap-2", onsubmit: handleSubmit },
       div(
         { className: "flex items-center gap-2" },
         input(
-          f.register("name", {
+          form.register("name", {
             className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 flex-1",
             placeholder: "Enter your name",
             autofocus: true
           })
         ),
-        Button({ type: "button", onclick: () => f.reset("name") }, "Reset"),
-        Button({ type: "button", onclick: () => f.setValue("name", generateRandomString(16)) }, "Set Rnd")
+        Button({ type: "button", onclick: () => form.reset("name") }, "Reset"),
+        Button({ type: "button", onclick: () => form.setValue("name", generateRandomString(16)) }, "Set Rnd")
       ),
       div(
         { className: "flex items-center gap-2" },
         input(
-          f.register("email", {
+          form.register("email", {
             type: "email",
             className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 flex-1",
             placeholder: "Enter your email"
           })
         ),
-        Button({ type: "button", onclick: () => f.reset("email") }, "Reset"),
-        Button({ type: "button", onclick: () => f.setValue("email", generateRandomEmail()) }, "Set Rnd")
+        Button({ type: "button", onclick: () => form.reset("email") }, "Reset"),
+        Button({ type: "button", onclick: () => form.setValue("email", generateRandomEmail()) }, "Set Rnd")
       ),
       div(
         { className: "flex items-center gap-2" },
         select(
-          f.register("gender", {
+          form.register("gender", {
             className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 flex-1"
           }),
           option({ value: "" }, "Sex"),
           option({ value: "Male" }, "Male"),
           option({ value: "Female" }, "Female")
         ),
-        Button({ type: "button", onclick: () => f.reset("gender") }, "Reset"),
-        Button({ type: "button", onclick: () => f.setValue("gender", generateRandomGender()) }, "Set Rnd")
+        Button({ type: "button", onclick: () => form.reset("gender") }, "Reset"),
+        Button({ type: "button", onclick: () => form.setValue("gender", generateRandomGender()) }, "Set Rnd")
       ),
       Button({ type: "submit" }, "Submit")
     ),
@@ -80,7 +96,7 @@ export default function App() {
           observables.val.gender || "N/A"
         } }`
     ),
-    Button({ onclick: () => f.reset() }, "Reset"),
+    Button({ onclick: () => form.reset() }, "Reset"),
     Button({ onclick: alertValues }, "Alert")
   );
 }
