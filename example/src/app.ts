@@ -3,35 +3,39 @@ import van, { ChildDom, Props } from "vanjs-core";
 import { Form, yupValidator } from "vanjs-form";
 import * as yup from "yup";
 
-const { div, form: formEl, input, h1, select, option, button, p } = van.tags;
-
-const form = new Form({
-  initialValues: {
-    name: "Qwerty",
-    email: "test@gmail.com",
-    gender: "Male",
-    age: 0
-  },
-  validator: yupValidator(
-    yup.object({
-      name: yup.string().required("Required").length(6, "Must be 6 chars"),
-      email: yup.string().required("Required").email("Must be a valid email"),
-      gender: yup.string().required("Required").oneOf(["Male", "Female"], "Valid gender is required")
-    })
-  ),
-  validationMode: "oninput"
-});
+const { div, form: formEl, input, h1, select, option, button, label, p } = van.tags;
 
 export default function App() {
-  const watched = form.watch("name", "gender", "email", "age");
+  const form = new Form({
+    initialValues: {
+      input: "",
+      range: 50,
+      select: "",
+      radio: "",
+      checkbox: false
+    },
+    validator: yupValidator(
+      yup.object({
+        input: yup.string().required("Required").min(6, "Must be at least 6 chars"),
+        range: yup.number().min(50, "Range must be at least 50"),
+        select: yup.string().required("Required"),
+        radio: yup.string().required("Required"),
+        checkbox: yup.boolean().required("Required").isTrue("Must be set")
+      })
+    ),
+    validationMode: "oninput"
+  });
+
+  const data = form.watch("input", "range", "select", "radio", "checkbox");
 
   const alertValues = () => {
-    const name = form.get("name") ?? "N/A";
-    const email = form.get("email") ?? "N/A";
-    const gender = form.get("gender") ?? "N/A";
-    const age = form.get("age") ?? "N/A";
+    const input = form.get("input");
+    const range = form.get("range");
+    const select = form.get("select");
+    const radio = form.get("radio");
+    const checkbox = form.get("checkbox");
 
-    alert(`{ Name: ${name}, Email: ${email}, Gender: ${gender} }, Age: ${age}`);
+    alert(`{ Input: "${input}", Range: "${range}", Select: "${select}", Radio: "${radio}", Checkbox: "${checkbox}" }`);
   };
 
   const handleSubmit = form.handleSubmit((values) => {
@@ -40,55 +44,87 @@ export default function App() {
 
   return div(
     { className: "flex flex-col justify-start gap-4 p-6 w-full max-w-[640px]" },
-    h1("VanJS Form"),
+    h1({ className: "text-5xl font-light" }, "VanJS Form"),
+    p({ className: "text-gray-600 font-light" }, "Built by Kwame Opare Asiedu with ❤"),
     formEl(
       { className: "flex flex-col gap-2", onsubmit: handleSubmit },
-      div(
-        { className: "flex gap-2" },
-        div(
-          { className: "flex-1" },
-          input(
-            form.register("name", {
-              className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 w-full",
-              placeholder: "Enter your name",
-              autofocus: true
-            })
-          ),
-          p(() => form.error("name"))
-        ),
-        Button({ type: "button", onclick: () => form.reset("name") }, "Reset"),
-        Button({ type: "button", onclick: () => form.set("name", generateRandomString(6)) }, "Set Rnd")
-      ),
-      div(
-        { className: "flex gap-2" },
+      Field(
+        {
+          error: () => form.error("input"),
+          onreset: () => form.reset("input"),
+          onsetrnd: () => form.set("input", generateRandomString(6))
+        },
         input(
-          form.register("email", {
-            type: "email",
-            className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 flex-1",
-            placeholder: "Enter your email"
+          form.register("input", {
+            type: "text",
+            className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 w-full",
+            placeholder: "Input field",
+            autofocus: true
           })
-        ),
-        Button({ type: "button", onclick: () => form.reset("email") }, "Reset"),
-        Button({ type: "button", onclick: () => form.set("email", generateRandomEmail()) }, "Set Rnd")
+        )
       ),
-      div(
-        { className: "flex gap-2" },
+      Field(
+        {
+          error: () => form.error("range"),
+          onreset: () => form.reset("range"),
+          onsetrnd: () => form.set("range", parseInt((100 * Math.random()) as never as string))
+        },
+        input(
+          form.register("range", {
+            type: "range",
+            className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 w-full"
+          })
+        )
+      ),
+      Field(
+        {
+          error: () => form.error("select"),
+          onreset: () => form.reset("select"),
+          onsetrnd: () => form.set("select", cycleOptions("cappuccino", "espresso", form.get("select")))
+        },
         select(
-          form.register("gender", {
-            className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 flex-1"
+          form.register("select", {
+            className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 w-full"
           }),
-          option({ value: "" }, "Sex"),
-          option({ value: "Male" }, "Male"),
-          option({ value: "Female" }, "Female")
-        ),
-        Button({ type: "button", onclick: () => form.reset("gender") }, "Reset"),
-        Button({ type: "button", onclick: () => form.set("gender", generateRandomGender()) }, "Set Rnd")
+          option({ value: "" }, "Select..."),
+          option({ value: "cappuccino" }, "Cappuccino"),
+          option({ value: "espresso" }, "Espresso")
+        )
+      ),
+      Field(
+        {
+          error: () => form.error("radio"),
+          onreset: () => form.reset("radio"),
+          onsetrnd: () => form.set("radio", cycleOptions("chai", "herbal", form.get("radio")))
+        },
+        div(
+          { className: "flex gap-2" },
+          label(
+            { className: "flex gap-1" },
+            input(form.register("radio", { type: "radio", value: "chai" })),
+            "Chai Tea"
+          ),
+          label(
+            { className: "flex gap-1" },
+            input(form.register("radio", { type: "radio", value: "herbal" })),
+            "Herbal Tea"
+          )
+        )
+      ),
+      Field(
+        {
+          error: () => form.error("checkbox"),
+          onreset: () => form.reset("checkbox"),
+          onsetrnd: () => form.set("checkbox", cycleOptions(true, false, form.get("checkbox")))
+        },
+        label({ className: "flex gap-1" }, input(form.register("checkbox", { type: "checkbox" })), "Do you even Van?")
       ),
       Button({ type: "submit" }, "Submit")
     ),
     p(
       { className: "text-sm text-gray-500 font-mono" },
-      () => `{ Name: "${watched.val.name}", Email: "${watched.val.email}", Gender: "${watched.val.gender}" }`
+      () =>
+        `{ Input: ${data.val.input}, Range: ${data.val.range}, Select: ${data.val.select}, Radio: ${data.val.radio}, Checkbox: ${data.val.checkbox} }`
     ),
     Button({ onclick: () => form.reset() }, "Reset"),
     Button({ onclick: alertValues }, "Alert")
@@ -112,14 +148,23 @@ const Button = (propsOrChild: Props | ChildDom, ...children: ChildDom[]) => {
   }
 };
 
+type FieldProps = Partial<HTMLDivElement> & { error?: () => string; onreset: () => void; onsetrnd: () => void };
+
+const Field = ({ error, className, onreset, onsetrnd, ...rest }: FieldProps, child: ChildDom) => {
+  return div(
+    { ...(rest as HTMLDivElement), className: `flex gap-2 items-center ${className ?? ""}` },
+    div({ className: "flex-1 flex-col gap-1" }, child, () =>
+      error ? p({ className: "text-sm text-rose-600 italic" }, error) : null
+    ),
+    Button({ type: "button", onclick: onreset }, "Reset"),
+    Button({ type: "button", onclick: onsetrnd }, "Set Rnd")
+  );
+};
+
 const generateRandomString = (length: number) => {
   return [...Array(length)].map(() => (~~(Math.random() * 36)).toString(36)).join("");
 };
 
-const generateRandomEmail = () => {
-  return `${generateRandomString(8)}@${generateRandomString(4)}.com`;
-};
-
-const generateRandomGender = () => {
-  return Math.random() > 0.5 ? "Male" : "Female";
+const cycleOptions = <T>(option1: T, option2: T, value: T) => {
+  return value === option2 ? option1 : option2;
 };
