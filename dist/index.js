@@ -43,20 +43,33 @@ class Form {
     }
     get(name) {
         const field = this.fields[name];
-        if (field)
-            return field.value.val;
-        else
+        if (!field)
             throw new Error(`No field with name "${name}"`);
+        return field.value.val;
     }
     set(name, value) {
         const field = this.fields[name];
-        if (field)
-            field.value.val = value;
-        else
+        if (!field)
             throw new Error(`No field with name "${name}"`);
+        field.value.val = value;
     }
+    // error<K extends KeyOf<T>>(name: K) {
+    //   const field: Field<T[typeof name]> = this.fields[name] as Field<T[typeof name]>;
+    //   if (!field) throw new Error(`No field with name "${name as string}"`);
+    //   return field.error.val;
+    // }
+    //
+    // errors() {
+    //   const errors: Record<KeyOf<T>, string | null> = {} as Record<KeyOf<T>, string | null>;
+    //
+    //   for (const key in this.fields) {
+    //     const field: Field<unknown> = this.fields[key];
+    //     errors[key] = field.error.val;
+    //   }
+    //
+    //   return errors;
+    // }
     watch(...names) {
-        console.log("Observing");
         return van.derive(() => {
             const values = {};
             if (names.length > 0) {
@@ -100,23 +113,40 @@ class Form {
                 const field = this.fields[key];
                 values[key] = field.value.val;
             }
-            this.validator(values).then((values) => handler(values));
+            this.validator(values).then((valuesOrErrors) => {
+                if (valuesOrErrors instanceof FormError) {
+                    for (const name in this.fields) {
+                        const errorString = valuesOrErrors.errors[name];
+                        const field = this.fields[name];
+                        if (field)
+                            field.error.val = errorString ?? "";
+                    }
+                }
+                else
+                    handler(valuesOrErrors);
+            });
         };
     }
 }
-
+class FormError {
+    errors;
+    constructor(errors) {
+        this.errors = errors;
+    }
+}
 const yupValidator = (schema) => {
-    return (values) => {
-        return schema
-            .validate(values, { abortEarly: false })
-            .then((values) => values)
-            .catch((err) => {
-            const errors = {};
-            for (let i = 0; i < err.errors.length; i++) {
-                errors[err.inner[i].path] = err.errors[i];
-            }
-            throw errors;
-        });
+    return async (values) => {
+        try {
+            return await schema.validate(values, { abortEarly: false });
+        }
+        catch (_err) {
+            const yupError = _err;
+            const errorMap = {};
+            yupError.errors.forEach((yupErrorStr, i) => {
+                errorMap[yupError.inner[i].path] = yupErrorStr;
+            });
+            return new FormError(errorMap);
+        }
     };
 };
 
