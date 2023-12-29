@@ -11,7 +11,7 @@ type Validator<T> = (values: T) => Promise<T | FormError<Partial<T>>>;
 interface Field<T> {
   value: State<T>;
   touched: State<boolean>;
-  error: State<string | null>;
+  error: State<string>;
 }
 
 export class Form<T extends Record<string, unknown>> {
@@ -31,7 +31,7 @@ export class Form<T extends Record<string, unknown>> {
       this.fields[key] = {
         value: van.state(args.initialValues[key]),
         touched: van.state(false),
-        error: van.state(null)
+        error: van.state("")
       };
     }
   }
@@ -57,27 +57,27 @@ export class Form<T extends Record<string, unknown>> {
         oninput: handleInput,
         onfocus: handleFocus
       } as Pick<HTMLInputElement, "name" | "oninput" | "onfocus"> & { value: State<T[typeof name]> };
-    } else throw new Error(`No field with name "${name as string}"`);
+    } else throw new Error(`No field named "${name as string}"`);
   }
 
   get<K extends KeyOf<T>>(name: K) {
-    const field: Field<T[typeof name]> = this.fields[name] as Field<T[typeof name]>;
-    if (!field) throw new Error(`No field with name "${name as string}"`);
+    const field = this.fields[name];
+    if (!field) throw new Error(`No field named "${name as string}"`);
     return field.value.val;
   }
 
   set<K extends KeyOf<T>>(name: K, value: T[typeof name]) {
-    const field: Field<T[typeof name]> = this.fields[name] as never;
-    if (!field) throw new Error(`No field with name "${name as string}"`);
+    const field = this.fields[name];
+    if (!field) throw new Error(`No field named "${name as string}"`);
     field.value.val = value;
   }
 
-  // error<K extends KeyOf<T>>(name: K) {
-  //   const field: Field<T[typeof name]> = this.fields[name] as Field<T[typeof name]>;
-  //   if (!field) throw new Error(`No field with name "${name as string}"`);
-  //   return field.error.val;
-  // }
-  //
+  error<K extends KeyOf<T>>(name: K) {
+    const field = this.fields[name];
+    if (!field) throw new Error(`No field named "${name as string}"`);
+    return field.error.val;
+  }
+
   // errors() {
   //   const errors: Record<KeyOf<T>, string | null> = {} as Record<KeyOf<T>, string | null>;
   //
@@ -115,14 +115,14 @@ export class Form<T extends Record<string, unknown>> {
         const field: Field<unknown> = this.fields[name];
         field.value.val = this.initialValues[name];
         field.touched.val = false;
-        field.error.val = null;
+        field.error.val = "";
       }
     } else {
       for (const key in this.fields) {
         const field: Field<unknown> = this.fields[key];
         field.value.val = this.initialValues[key];
         field.touched.val = false;
-        field.error.val = null;
+        field.error.val = "";
       }
     }
   }
@@ -145,7 +145,14 @@ export class Form<T extends Record<string, unknown>> {
             const field: Field<unknown> = this.fields[name];
             if (field) field.error.val = errorString ?? "";
           }
-        } else handler(valuesOrErrors as T);
+        } else {
+          for (const name in this.fields) {
+            const field: Field<unknown> = this.fields[name];
+            field.error.val = "";
+          }
+
+          handler(valuesOrErrors as T);
+        }
       });
     };
   }

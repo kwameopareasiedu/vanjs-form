@@ -16,6 +16,10 @@ export declare class Form<T extends Record<string, unknown>> {
 
   public set<K extends KeyOf<T>>(name: K, value: T[typeof name]);
 
+  public error<K extends KeyOf<T>>(name: K): string;
+
+  // public errors(): Record<KeyOf<T>, string>;
+
   public watch(): import("vanjs-core").State<T>;
 
   public watch<K extends KeyOf<T>>(...names: K[]): import("vanjs-core").State<{ [I in (typeof names)[number]]: T[I] }>;

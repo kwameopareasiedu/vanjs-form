@@ -7,9 +7,9 @@ const { div, form: formEl, input, h1, select, option, button, p } = van.tags;
 
 const form = new Form({
   initialValues: {
-    name: "",
-    email: "",
-    gender: "",
+    name: "Qwerty",
+    email: "test@gmail.com",
+    gender: "Male",
     age: 0
   },
   validator: yupValidator(
@@ -43,19 +43,23 @@ export default function App() {
     formEl(
       { className: "flex flex-col gap-2", onsubmit: handleSubmit },
       div(
-        { className: "flex items-center gap-2" },
-        input(
-          form.register("name", {
-            className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 flex-1",
-            placeholder: "Enter your name",
-            autofocus: true
-          })
+        { className: "flex gap-2" },
+        div(
+          { className: "flex-1" },
+          input(
+            form.register("name", {
+              className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 w-full",
+              placeholder: "Enter your name",
+              autofocus: true
+            })
+          ),
+          p(() => form.error("name"))
         ),
         Button({ type: "button", onclick: () => form.reset("name") }, "Reset"),
         Button({ type: "button", onclick: () => form.set("name", generateRandomString(6)) }, "Set Rnd")
       ),
       div(
-        { className: "flex items-center gap-2" },
+        { className: "flex gap-2" },
         input(
           form.register("email", {
             type: "email",
@@ -67,7 +71,7 @@ export default function App() {
         Button({ type: "button", onclick: () => form.set("email", generateRandomEmail()) }, "Set Rnd")
       ),
       div(
-        { className: "flex items-center gap-2" },
+        { className: "flex gap-2" },
         select(
           form.register("gender", {
             className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 flex-1"

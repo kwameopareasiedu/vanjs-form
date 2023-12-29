@@ -15,7 +15,7 @@ class Form {
             this.fields[key] = {
                 value: van.state(args.initialValues[key]),
                 touched: van.state(false),
-                error: van.state(null)
+                error: van.state("")
             };
         }
     }
@@ -39,26 +39,26 @@ class Form {
             };
         }
         else
-            throw new Error(`No field with name "${name}"`);
+            throw new Error(`No field named "${name}"`);
     }
     get(name) {
         const field = this.fields[name];
         if (!field)
-            throw new Error(`No field with name "${name}"`);
+            throw new Error(`No field named "${name}"`);
         return field.value.val;
     }
     set(name, value) {
         const field = this.fields[name];
         if (!field)
-            throw new Error(`No field with name "${name}"`);
+            throw new Error(`No field named "${name}"`);
         field.value.val = value;
     }
-    // error<K extends KeyOf<T>>(name: K) {
-    //   const field: Field<T[typeof name]> = this.fields[name] as Field<T[typeof name]>;
-    //   if (!field) throw new Error(`No field with name "${name as string}"`);
-    //   return field.error.val;
-    // }
-    //
+    error(name) {
+        const field = this.fields[name];
+        if (!field)
+            throw new Error(`No field named "${name}"`);
+        return field.error.val;
+    }
     // errors() {
     //   const errors: Record<KeyOf<T>, string | null> = {} as Record<KeyOf<T>, string | null>;
     //
@@ -93,7 +93,7 @@ class Form {
                 const field = this.fields[name];
                 field.value.val = this.initialValues[name];
                 field.touched.val = false;
-                field.error.val = null;
+                field.error.val = "";
             }
         }
         else {
@@ -101,7 +101,7 @@ class Form {
                 const field = this.fields[key];
                 field.value.val = this.initialValues[key];
                 field.touched.val = false;
-                field.error.val = null;
+                field.error.val = "";
             }
         }
     }
@@ -122,8 +122,13 @@ class Form {
                             field.error.val = errorString ?? "";
                     }
                 }
-                else
+                else {
+                    for (const name in this.fields) {
+                        const field = this.fields[name];
+                        field.error.val = "";
+                    }
                     handler(valuesOrErrors);
+                }
             });
         };
     }
