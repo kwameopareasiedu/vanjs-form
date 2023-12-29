@@ -41,35 +41,38 @@ class Form {
         else
             throw new Error(`No field with name "${name}"`);
     }
-    getValue(name) {
+    get(name) {
         const field = this.fields[name];
         if (field)
             return field.value.val;
         else
             throw new Error(`No field with name "${name}"`);
     }
-    setValue(name, value) {
+    set(name, value) {
         const field = this.fields[name];
         if (field)
             field.value.val = value;
         else
             throw new Error(`No field with name "${name}"`);
     }
-    observe(...names) {
-        const values = {};
-        if (names.length > 0) {
-            for (const name of names) {
-                const field = this.fields[name];
-                values[name] = field.value.val;
+    watch(...names) {
+        console.log("Observing");
+        return van.derive(() => {
+            const values = {};
+            if (names.length > 0) {
+                for (const name of names) {
+                    const field = this.fields[name];
+                    values[name] = field.value.val;
+                }
             }
-        }
-        else {
-            for (const key in this.fields) {
-                const field = this.fields[key];
-                values[key] = field.value.val;
+            else {
+                for (const key in this.fields) {
+                    const field = this.fields[key];
+                    values[key] = field.value.val;
+                }
             }
-        }
-        return values;
+            return values;
+        });
     }
     reset(...names) {
         if (names.length > 0) {

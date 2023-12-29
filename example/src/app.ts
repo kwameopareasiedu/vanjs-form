@@ -22,15 +22,13 @@ const form = new Form({
 });
 
 export default function App() {
-  const data = van.derive(() => {
-    return form.observe("name", "gender", "email", "age");
-  });
+  const observed = form.watch("name", "gender", "email", "age");
 
   const alertValues = () => {
-    const name = form.getValue("name") ?? "N/A";
-    const email = form.getValue("name") ?? "N/A";
-    const gender = form.getValue("gender") ?? "N/A";
-    const age = form.getValue("age") ?? "N/A";
+    const name = form.get("name") ?? "N/A";
+    const email = form.get("email") ?? "N/A";
+    const gender = form.get("gender") ?? "N/A";
+    const age = form.get("age") ?? "N/A";
 
     alert(`{ Name: ${name}, Email: ${email}, Gender: ${gender} }, Age: ${age}`);
   };
@@ -54,7 +52,7 @@ export default function App() {
           })
         ),
         Button({ type: "button", onclick: () => form.reset("name") }, "Reset"),
-        Button({ type: "button", onclick: () => form.setValue("name", generateRandomString(16)) }, "Set Rnd")
+        Button({ type: "button", onclick: () => form.set("name", generateRandomString(6)) }, "Set Rnd")
       ),
       div(
         { className: "flex items-center gap-2" },
@@ -66,7 +64,7 @@ export default function App() {
           })
         ),
         Button({ type: "button", onclick: () => form.reset("email") }, "Reset"),
-        Button({ type: "button", onclick: () => form.setValue("email", generateRandomEmail()) }, "Set Rnd")
+        Button({ type: "button", onclick: () => form.set("email", generateRandomEmail()) }, "Set Rnd")
       ),
       div(
         { className: "flex items-center gap-2" },
@@ -79,14 +77,13 @@ export default function App() {
           option({ value: "Female" }, "Female")
         ),
         Button({ type: "button", onclick: () => form.reset("gender") }, "Reset"),
-        Button({ type: "button", onclick: () => form.setValue("gender", generateRandomGender()) }, "Set Rnd")
+        Button({ type: "button", onclick: () => form.set("gender", generateRandomGender()) }, "Set Rnd")
       ),
       Button({ type: "submit" }, "Submit")
     ),
     p(
       { className: "text-sm text-gray-500 font-mono" },
-      () =>
-        `{ Name: ${data.val.name || "N/A"}, Email: ${data.val.email || "N/A"}, Gender: ${data.val.gender || "N/A"} }`
+      () => `{ Name: "${observed.val.name}", Email: "${observed.val.email}", Gender: "${observed.val.gender}" }`
     ),
     Button({ onclick: () => form.reset() }, "Reset"),
     Button({ onclick: alertValues }, "Alert")

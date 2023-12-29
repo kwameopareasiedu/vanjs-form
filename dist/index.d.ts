@@ -12,13 +12,13 @@ export declare class Form<T extends Record<string, unknown>> {
     additionalProps?: Partial<HTMLInputElement>
   ): Pick<HTMLInputElement, "name" | "oninput" | "onfocus"> & { value: import("vanjs-core").State<T[typeof name]> };
 
-  public getValue<K extends KeyOf<T>>(name: K): T[typeof name];
+  public get<K extends KeyOf<T>>(name: K): T[typeof name];
 
-  public setValue<K extends KeyOf<T>>(name: K, value: T[typeof name]);
+  public set<K extends KeyOf<T>>(name: K, value: T[typeof name]);
 
-  public observe(): T;
+  public watch(): import("vanjs-core").State<T>;
 
-  public observe<K extends KeyOf<T>>(...names: K[]): { [I in (typeof names)[number]]: T[I] };
+  public watch<K extends KeyOf<T>>(...names: K[]): import("vanjs-core").State<{ [I in (typeof names)[number]]: T[I] }>;
 
   public reset(): void;
 

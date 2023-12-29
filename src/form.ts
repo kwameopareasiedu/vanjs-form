@@ -58,34 +58,38 @@ export class Form<T extends Record<string, unknown>> {
     } else throw new Error(`No field with name "${name as string}"`);
   }
 
-  getValue(name: keyof T) {
+  get(name: keyof T) {
     const field: Field<T[typeof name]> = this.fields[name];
     if (field) return field.value.val;
     else throw new Error(`No field with name "${name as string}"`);
   }
 
-  setValue<K extends KeyOf<T>>(name: K, value: T[typeof name]) {
+  set<K extends KeyOf<T>>(name: K, value: T[typeof name]) {
     const field: Field<T[typeof name]> = this.fields[name] as never;
     if (field) field.value.val = value;
     else throw new Error(`No field with name "${name as string}"`);
   }
 
-  observe<K extends KeyOf<T>>(...names: K[]) {
-    const values: Record<K, T[K]> = {} as Record<K, T[K]>;
+  watch<K extends KeyOf<T>>(...names: K[]) {
+    console.log("Observing");
 
-    if (names.length > 0) {
-      for (const name of names) {
-        const field: Field<unknown> = this.fields[name];
-        values[name] = field.value.val as never;
-      }
-    } else {
-      for (const key in this.fields) {
-        const field: Field<unknown> = this.fields[key];
-        values[key as never] = field.value.val as never;
-      }
-    }
+    return van.derive(() => {
+      const values: Record<K, T[K]> = {} as Record<K, T[K]>;
 
-    return values;
+      if (names.length > 0) {
+        for (const name of names) {
+          const field: Field<unknown> = this.fields[name];
+          values[name] = field.value.val as never;
+        }
+      } else {
+        for (const key in this.fields) {
+          const field: Field<unknown> = this.fields[key];
+          values[key as never] = field.value.val as never;
+        }
+      }
+
+      return values;
+    });
   }
 
   reset<K extends keyof T>(...names: K[]) {
