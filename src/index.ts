@@ -8,11 +8,14 @@ type ValueOf<T> = T[KeyOf<T>];
 
 type Validator<T> = (values: T) => Promise<T | FormError<Partial<T>>>;
 
-interface Field<T> {
+type InjectedHTMLProps = Pick<HTMLInputElement, "name" | "oninput" | "onfocus">;
+
+type Field<T> = {
   value: State<T>;
+  checked: State<boolean>;
   touched: State<boolean>;
   error: State<string>;
-}
+};
 
 export class Form<T extends Record<string, unknown>> {
   private readonly initialValues: T;
@@ -31,6 +34,7 @@ export class Form<T extends Record<string, unknown>> {
       this.fields[key] = {
         value: van.state(args.initialValues[key]),
         touched: van.state(false),
+        checked: van.state(false),
         error: van.state("")
       };
     }
@@ -38,10 +42,14 @@ export class Form<T extends Record<string, unknown>> {
 
   register<K extends KeyOf<T>>(name: K, additionalProps?: Partial<HTMLInputElement>) {
     const field = this.fields[name];
+    const isRadioInput = additionalProps?.type === "radio";
 
     if (field) {
       const handleInput = (e: KeyboardEvent) => {
-        field.value.val = (e.target as HTMLInputElement).value as never;
+        const target = e.target as HTMLInputElement;
+        const resolvedValue = isRadioInput ? additionalProps?.value : target.value;
+        field.value.val = resolvedValue as never;
+
         (additionalProps as HTMLInputElement)?.oninput?.(e);
 
         if (this.validationMode === "oninput") {
@@ -66,13 +74,25 @@ export class Form<T extends Record<string, unknown>> {
         (additionalProps as HTMLInputElement)?.onfocus?.(e);
       };
 
-      return {
-        ...additionalProps,
-        name: name,
-        value: field.value,
-        oninput: handleInput,
-        onfocus: handleFocus
-      } as Pick<HTMLInputElement, "name" | "oninput" | "onfocus"> & { value: State<T[typeof name]> };
+      if (isRadioInput) {
+        return {
+          ...additionalProps,
+          name: name as never,
+          value: additionalProps?.value as never,
+          checked: van.derive(() => field.value.val === additionalProps?.value) as never,
+          oninput: handleInput as never,
+          onfocus: handleFocus as never
+        } as InjectedHTMLProps & { value?: State<T[typeof name]>; checked?: State<boolean> };
+      } else {
+        return {
+          ...additionalProps,
+          name: name as never,
+          value: field.value as never,
+          checked: field.checked as never,
+          oninput: handleInput as never,
+          onfocus: handleFocus as never
+        } as InjectedHTMLProps & { value?: State<T[typeof name]>; checked?: State<boolean> };
+      }
     } else throw new Error(`No field named "${name as string}"`);
   }
 
@@ -119,6 +139,7 @@ export class Form<T extends Record<string, unknown>> {
       for (const name of names) {
         const field = this.fields[name];
         field.value.val = this.initialValues[name];
+        field.checked.val = false;
         field.touched.val = false;
         field.error.val = "";
       }
@@ -126,6 +147,7 @@ export class Form<T extends Record<string, unknown>> {
       for (const key in this.fields) {
         const field = this.fields[key];
         field.value.val = this.initialValues[key];
+        field.checked.val = false;
         field.touched.val = false;
         field.error.val = "";
       }
