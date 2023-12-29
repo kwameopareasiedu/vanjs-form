@@ -1,6 +1,9 @@
 type KeyOf<T> = keyof T;
 
-type InjectedHTMLProps = Pick<HTMLInputElement, "name" | "oninput" | "onfocus">;
+type InjectedHTMLProps<T, K extends KeyOf<T>> = Pick<HTMLInputElement, "name" | "oninput" | "onfocus"> & {
+  value: import("vanjs-core").State<T[K]>;
+  checked: import("vanjs-core").State<boolean>;
+};
 
 type FormValidator<T> = (values: T) => Promise<Record<keyof T, unknown>>;
 
@@ -23,10 +26,7 @@ export declare class Form<T extends Record<string, unknown>> {
   public register<K extends KeyOf<T>>(
     name: K,
     additionalProps?: Partial<HTMLInputElement>
-  ): InjectedHTMLProps & {
-    value: import("vanjs-core").State<T[typeof name]>;
-    checked: import("vanjs-core").State<boolean>;
-  };
+  ): InjectedHTMLProps<T, typeof name>;
 
   /** Get the value of a field */
   public get<K extends KeyOf<T>>(name: K): T[typeof name];
