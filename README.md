@@ -4,6 +4,7 @@ Fully typed form state management library (with validation) for the VanJS [VanJS
 from React, `vanjs-form` feels similar to [react-hook-form](https://npmjs.org/package/react-hook-form).
 
 [![](https://img.shields.io/badge/Github-Star-blue)](https://github.com/kwameopareasiedu/vanjs-form)
+[![](https://img.shields.io/badge/Size-2.1Kb-orange)](https://github.com/kwameopareasiedu/vanjs-form)
 
 ## Install
 
