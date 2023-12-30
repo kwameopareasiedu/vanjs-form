@@ -1,10 +1,11 @@
 {
   "name": "vanjs-form",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Fully typed form state management library (with validation) for VanJS",
   "repository": "https://github.com/kwameopareasiedu/vanjs-form",
   "homepage": "https://github.com/kwameopareasiedu/vanjs-form",
   "keywords": ["vanjs", "form", "validation"],
+  "maintainers": ["Kwame Opare Asiedu"],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Kwame Opare Asiedu",
