@@ -146,7 +146,7 @@ const form = new Form({
 });
 ```
 
-### Form methods
+## Form methods
 
 ```typescript
 import { Form } from "vanjs-form";
@@ -166,7 +166,7 @@ form.reset();
 form.handleSubmit();
 ```
 
-#### Register
+### Register
 
 - Registers an input with the form
 - Merges `additionalProps` into returned object
@@ -177,7 +177,7 @@ form.handleSubmit();
 form.register(name: string, additionalProps: Partial<HTMLElement>): HTMLElement;
 ```
 
-#### Get
+### Get
 
 - Gets the **typed** value of the input with the `name` in the form
 
@@ -185,7 +185,7 @@ form.register(name: string, additionalProps: Partial<HTMLElement>): HTMLElement;
 form.get(name: string): T[typeof name];
 ```
 
-#### Set
+### Set
 
 - Sets the value of the input with the `name` in the form
 
@@ -193,7 +193,7 @@ form.get(name: string): T[typeof name];
 form.set(name: string, value: T[typeof name]): void;
 ```
 
-#### Error
+### Error
 
 - Gets the error of the input with the `name` in the form
 
@@ -201,7 +201,7 @@ form.set(name: string, value: T[typeof name]): void;
 form.error(name: string): string;
 ```
 
-#### Watch
+### Watch
 
 - Returns a reactive object containing the specified field values
 - No need to wrap in `van.derive()` 🙂
@@ -210,7 +210,7 @@ form.error(name: string): string;
 form.watch(...names: string[]): State<{}>
 ```
 
-#### Reset
+### Reset
 
 - Resets a form field or the entire form
 
@@ -219,7 +219,7 @@ form.reset(...name: string[]): void // Reset specific fields
 form.reset(): void // Reset entire form
 ```
 
-#### Handle submit
+### Handle submit
 
 - Register a function to use as a submit handler
 - If `validator` is specified on the form, the handler is called if validation passes
