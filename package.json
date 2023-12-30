@@ -1,6 +1,6 @@
 {
   "name": "vanjs-form",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Fully typed form state management library (with validation) for VanJS",
   "repository": "https://github.com/kwameopareasiedu/vanjs-form",
   "homepage": "https://github.com/kwameopareasiedu/vanjs-form",

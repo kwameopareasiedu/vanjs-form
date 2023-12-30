@@ -1,6 +1,6 @@
 type KeyOf<T> = keyof T;
 
-type InjectedHTMLProps<T, K extends KeyOf<T>> = Pick<HTMLInputElement, "name" | "oninput" | "onfocus"> & {
+type FieldProps<T, K extends KeyOf<T>> = Pick<HTMLInputElement, "name" | "oninput" | "onfocus"> & {
   value: import("vanjs-core").State<T[K]>;
   checked: import("vanjs-core").State<boolean>;
 };
@@ -23,10 +23,10 @@ export declare class Form<T extends Record<string, unknown>> {
    * @param name The field name
    * @param additionalProps Additional props of the element to merge with the form props
    * @returns An attribute object which should be spread on the element */
-  public register<K extends KeyOf<T>>(
+  public register<K extends KeyOf<T>, P extends Partial<HTMLInputElement>>(
     name: K,
-    additionalProps?: Partial<HTMLInputElement>
-  ): InjectedHTMLProps<T, typeof name>;
+    additionalProps?: P
+  ): FieldProps<T, typeof name> & typeof additionalProps;
 
   /** Get the value of a field */
   public get<K extends KeyOf<T>>(name: K): T[typeof name];

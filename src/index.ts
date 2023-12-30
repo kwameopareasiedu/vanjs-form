@@ -8,7 +8,7 @@ type ValueOf<T> = T[KeyOf<T>];
 
 type Validator<T> = (values: T) => Promise<T | FormError<Partial<T>>>;
 
-type InjectedHTMLProps<T, K extends KeyOf<T>> = Pick<HTMLInputElement, "name" | "oninput" | "onfocus"> & {
+type FieldProps<T, K extends KeyOf<T>> = Pick<HTMLInputElement, "name" | "oninput" | "onfocus"> & {
   value?: State<T[K]>;
   checked?: State<boolean>;
 };
@@ -71,7 +71,7 @@ export class Form<T extends Record<string, unknown>> {
           checked: field.value as never,
           oninput: handleInput as never,
           onfocus: handleFocus as never
-        } as InjectedHTMLProps<T, typeof name>;
+        } as FieldProps<T, typeof name>;
       } else if (isRadioInput) {
         return {
           ...additionalProps,
@@ -80,7 +80,7 @@ export class Form<T extends Record<string, unknown>> {
           checked: van.derive(() => field.value.val === additionalProps?.value) as never,
           oninput: handleInput as never,
           onfocus: handleFocus as never
-        } as InjectedHTMLProps<T, typeof name>;
+        } as FieldProps<T, typeof name>;
       } else {
         return {
           ...additionalProps,
@@ -89,7 +89,7 @@ export class Form<T extends Record<string, unknown>> {
           // checked: field.checked as never,
           oninput: handleInput as never,
           onfocus: handleFocus as never
-        } as InjectedHTMLProps<T, typeof name>;
+        } as FieldProps<T, typeof name>;
       }
     } else throw new Error(`No field named "${name as string}"`);
   }
