@@ -142,7 +142,7 @@ export class Form<T extends Record<string, unknown>> {
         field.touched.val = false;
         field.error.val = "";
 
-        if (this.validationMode === "oninput") this.validateField(name);
+        // if (this.validationMode === "oninput") this.validateField(name);
       }
     } else {
       for (const key in this.fields) {
@@ -151,7 +151,7 @@ export class Form<T extends Record<string, unknown>> {
         field.touched.val = false;
         field.error.val = "";
 
-        if (this.validationMode === "oninput") this.validateField(key);
+        // if (this.validationMode === "oninput") this.validateField(key);
       }
     }
   }
