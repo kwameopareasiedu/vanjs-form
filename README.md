@@ -233,3 +233,8 @@ form.handleSubmit((values: T) => void): (values: T) => void
 ## Contributors
 
 - [Kwame Opare Asiedu](https://github.com/kwameopareasiedu)
+
+## Changelog
+
+- 1.0.2 (Current)
+  - Disabled call to `form.validateField` on `form.reset` to avoid errors on form reset

@@ -9,7 +9,7 @@ export default function App() {
   const form = new Form({
     initialValues: {
       input: "",
-      range: 50,
+      range: 30,
       select: "",
       radio: "",
       checkbox: false
