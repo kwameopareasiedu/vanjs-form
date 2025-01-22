@@ -1,4 +1,4 @@
-import van, { State } from "vanjs-core";
+import van, { PropsWithKnownKeys, State } from "vanjs-core";
 import type { ObjectSchema } from "yup";
 import { ValidationError as YupError } from "yup";
 
@@ -36,71 +36,73 @@ export class Form<T extends Record<string, unknown>> {
       this.fields[key] = {
         value: van.state(args.initialValues[key]),
         touched: van.state(false),
-        error: van.state("")
+        error: van.state(""),
       };
     }
   }
 
-  register<K extends KeyOf<T>>(name: K, additionalProps?: Partial<HTMLInputElement>) {
+  register<K extends KeyOf<T>>(
+    name: K,
+    additionalProps?: PropsWithKnownKeys<Omit<HTMLInputElement, "name" | "checked" | "oninput" | "onfocus">>,
+  ): FieldProps<T, K> & typeof additionalProps {
     const field = this.fields[name];
+    if (!field) throw new Error(`No field named "${name as string}"`);
+
     const isCheckboxInput = additionalProps?.type === "checkbox";
     const isRadioInput = additionalProps?.type === "radio";
 
-    if (field) {
-      const handleInput = (e: KeyboardEvent) => {
-        const target = e.target as HTMLInputElement;
-        const value = isRadioInput ? additionalProps?.value : isCheckboxInput ? target.checked : target.value;
+    const handleInput = (e: KeyboardEvent) => {
+      const target = e.target as HTMLInputElement;
+      const value = isRadioInput ? additionalProps?.value : isCheckboxInput ? target.checked : target.value;
 
-        field.value.val = value as never;
+      field.value.val = value as never;
 
-        if (this.validationMode === "oninput") this.validateField(name);
+      if (this.validationMode === "oninput") this.validateField(name);
 
-        (additionalProps as HTMLInputElement)?.oninput?.(e);
+      (additionalProps as unknown as HTMLInputElement)?.oninput?.(e);
+    };
+
+    const handleFocus = (e: FocusEvent) => {
+      field.touched.val = true;
+      (additionalProps as unknown as HTMLInputElement)?.onfocus?.(e);
+    };
+
+    if (isCheckboxInput) {
+      return {
+        ...additionalProps,
+        name: name as never,
+        value: field.value as never,
+        checked: field.value as never,
+        oninput: handleInput as never,
+        onfocus: handleFocus as never,
       };
-
-      const handleFocus = (e: FocusEvent) => {
-        field.touched.val = true;
-        (additionalProps as HTMLInputElement)?.onfocus?.(e);
+    } else if (isRadioInput) {
+      return {
+        ...additionalProps,
+        name: name as never,
+        value: additionalProps?.value as never,
+        checked: van.derive(() => field.value.val === additionalProps?.value) as never,
+        oninput: handleInput as never,
+        onfocus: handleFocus as never,
       };
-
-      if (isCheckboxInput) {
-        return {
-          ...additionalProps,
-          name: name as never,
-          value: field.value as never,
-          checked: field.value as never,
-          oninput: handleInput as never,
-          onfocus: handleFocus as never
-        } as FieldProps<T, typeof name>;
-      } else if (isRadioInput) {
-        return {
-          ...additionalProps,
-          name: name as never,
-          value: additionalProps?.value as never,
-          checked: van.derive(() => field.value.val === additionalProps?.value) as never,
-          oninput: handleInput as never,
-          onfocus: handleFocus as never
-        } as FieldProps<T, typeof name>;
-      } else {
-        return {
-          ...additionalProps,
-          name: name as never,
-          value: field.value as never,
-          // checked: field.checked as never,
-          oninput: handleInput as never,
-          onfocus: handleFocus as never
-        } as FieldProps<T, typeof name>;
-      }
-    } else throw new Error(`No field named "${name as string}"`);
+    } else {
+      return {
+        ...additionalProps,
+        name: name as never,
+        value: field.value as never,
+        oninput: handleInput as never,
+        onfocus: handleFocus as never,
+      };
+    }
   }
 
-  get<K extends KeyOf<T>>(name: K) {
+  get<K extends KeyOf<T>>(name: K): T[typeof name] {
     const field = this.fields[name];
     if (!field) throw new Error(`No field named "${name as string}"`);
-    return field.value.val;
+    return field.value.val as never;
   }
 
-  set<K extends KeyOf<T>>(name: K, value: T[typeof name]) {
+  set<K extends KeyOf<T>>(name: K, value: T[typeof name]): void {
     const field = this.fields[name];
     if (!field) throw new Error(`No field named "${name as string}"`);
     field.value.val = value;
@@ -108,15 +110,17 @@ export class Form<T extends Record<string, unknown>> {
     if (this.validationMode === "oninput") this.validateField(name);
   }
 
-  error<K extends KeyOf<T>>(name: K) {
+  error<K extends KeyOf<T>>(name: K): string {
     const field = this.fields[name];
     if (!field) throw new Error(`No field named "${name as string}"`);
     return field.error.val;
   }
 
-  watch<K extends KeyOf<T>>(...names: K[]) {
+  watch<K extends KeyOf<T>>(
+    ...names: K[]
+  ): typeof names extends K[] ? State<{ [I in (typeof names)[number]]: T[I] }> : State<T> {
     return van.derive(() => {
-      const values: Record<K, T[K]> = {} as Record<K, T[K]>;
+      const values: Record<KeyOf<T>, T[K]> = {} as Record<KeyOf<T>, T[K]>;
 
       if (names.length > 0) {
         for (const name of names) {
@@ -126,15 +130,37 @@ export class Form<T extends Record<string, unknown>> {
       } else {
         for (const key in this.fields) {
           const field = this.fields[key];
-          values[key as never] = field.value.val as never;
+          values[key] = field.value.val as never;
         }
       }
 
       return values;
-    });
+    }) as never;
   }
 
-  reset<K extends keyof T>(...names: K[]) {
+  errors<K extends KeyOf<T>>(
+    ...names: K[]
+  ): typeof names extends K[] ? State<{ [I in (typeof names)[number]]: string }> : State<Record<KeyOf<T>, string>> {
+    return van.derive(() => {
+      const errors: Record<KeyOf<T>, string> = {} as Record<KeyOf<T>, string>;
+
+      if (names.length > 0) {
+        for (const name of names) {
+          const field = this.fields[name];
+          errors[name] = field.error.val;
+        }
+      } else {
+        for (const key in this.fields) {
+          const field = this.fields[key];
+          errors[key] = field.error.val;
+        }
+      }
+
+      return errors;
+    }) as never;
+  }
+
+  reset<K extends keyof T>(...names: K[]): void {
     if (names.length > 0) {
       for (const name of names) {
         const field = this.fields[name];
@@ -156,7 +182,7 @@ export class Form<T extends Record<string, unknown>> {
     }
   }
 
-  handleSubmit(handler: (values: T) => void) {
+  handleSubmit(handler: (values: T) => void): (e: SubmitEvent) => void {
     return (e: SubmitEvent) => {
       e.preventDefault();
 
@@ -186,7 +212,7 @@ export class Form<T extends Record<string, unknown>> {
     };
   }
 
-  private validateField<K extends keyof T>(name: K) {
+  private validateField<K extends keyof T>(name: K): void {
     const field = this.fields[name];
 
     if (field) {
@@ -215,19 +241,19 @@ class FormError<T extends Record<string, unknown>> {
   }
 }
 
-export const yupValidator = <T extends Record<string, unknown>>(schema: ObjectSchema<T>) => {
-  return async (values: T) => {
+export const yupValidator = <T extends Record<string, unknown>>(schema: ObjectSchema<T>): Validator<T> => {
+  return (async (values: T) => {
     try {
       return await schema.validate(values, { abortEarly: false });
     } catch (_err) {
       const yupError = _err as YupError;
-      const errorMap = {} as Record<string, string>;
+      const errorMap: Record<KeyOf<T>, string> = {} as Record<KeyOf<T>, string>;
 
       yupError.errors.forEach((yupErrorStr, i) => {
-        errorMap[yupError.inner[i].path! as never] = yupErrorStr;
+        errorMap[yupError.inner[i].path! as KeyOf<T>] = yupErrorStr;
       });
 
       return new FormError(errorMap);
     }
-  };
+  }) as never;
 };
