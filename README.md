@@ -1,6 +1,7 @@
 # VanJS Form
 
-Fully typed form state management library (with validation) for the [VanJS](https://vanjs.org/) framework. If you are coming
+Fully typed form state management library (with validation) for the [VanJS](https://vanjs.org/) framework. If you are
+coming
 from React, `vanjs-form` feels similar to [react-hook-form](https://npmjs.org/package/react-hook-form).
 
 [![](https://img.shields.io/badge/Github-Star-blue)](https://github.com/kwameopareasiedu/vanjs-form)
@@ -54,6 +55,8 @@ function App() {
 
   // Watch values when they change in the form fields
   const observables = form.watch("name", "title");
+  // or
+  const allValues = form.watch();
 
   // Called when form passes validation
   const onsubmit = form.handleSubmit((values) => {
@@ -67,9 +70,18 @@ function App() {
       { onsubmit: onsubmit },
       label("Title"),
       div(
-        label(input(form.register("title", { type: "radio", value: "Mr." })), "Mr."),
-        label(input(form.register("title", { type: "radio", value: "Ms." })), "Ms."),
-        label(input(form.register("title", { type: "radio", value: "Mrs." })), "Mrs.")
+        label(
+          input(form.register("title", { type: "radio", value: "Mr." })),
+          "Mr."
+        ),
+        label(
+          input(form.register("title", { type: "radio", value: "Ms." })),
+          "Ms."
+        ),
+        label(
+          input(form.register("title", { type: "radio", value: "Mrs." })),
+          "Mrs."
+        )
       ),
 
       br(),
@@ -171,36 +183,89 @@ form.handleSubmit();
 
 - Registers an input with the form
 - Merges `additionalProps` into returned object
-- Returns an object of parameters (`name`, `value`, `checked`, `oninput`, `onfocus`) which should be spread unto the
-  input's properties
+- Returns an object of props (`name`, `value`, `checked`, `oninput`, `onfocus`) which should be assigned as the
+  element's props
 
 ```typescript
-form.register(name: string, additionalProps: Partial<HTMLElement>): HTMLElement;
+form.register(
+  name, // string
+  additionalProps // Partial<HTMLElement>
+); // HTMLElement Props;
 ```
 
 ### Get
 
-- Gets the **typed** value of the input with the `name` in the form
+- Gets the **typed** value of the form field with the `name` key
 
 ```typescript
-form.get(name: string): T[typeof name];
+const form = new Form({
+  initialValues: {
+    name: "Kwame",
+    age: 28,
+    foo: true
+  }
+});
+
+const name = form.get("name");
+console.log(name); // "Kwame"
+
+const age = form.get("age");
+console.log(age); // 28
+
+const foo = form.get("foo");
+console.log(foo); // true
 ```
 
 ### Set
 
-- Sets the value of the input with the `name` in the form
+- Sets the value of the form field with the `name` key
 
 ```typescript
-form.set(name: string, value: T[typeof name]): void;
+const form = new Form({
+  initialValues: {
+    name: "Kwame",
+    age: 28,
+    foo: true
+  }
+});
+
+form.set("name", "Opare");
+form.set("age", 29);
+form.set("foo", false);
 ```
 
 ### Error
 
-- Gets the error of the input with the `name` in the form
+- Gets the error string of the form field with the `name` key
 
 ```typescript
-form.error(name: string): string;
+const form = new Form({
+  initialValues: {
+    name: "Kwame",
+    age: 28,
+    foo: true
+  },
+  validator: yupValidator(
+    yup.object({
+      name: yup.string().required("Required").min(6, "Must be more than 6 characters"),
+      age: yup.number().required("Required"),
+      foo: yup.boolean().required("Required"),
+    })
+  ),
+  validationMode: "oninput"
+});
+
+const nameError = form.error("name");
+console.log(nameError); // "Must be more than 6 characters"
+
+const ageError = form.error("age");
+console.log(ageError); // ""
+
+const fooError = form.error("foo");
+console.log(fooError); // ""
 ```
+
+> _An empty string is returned if the field has no error_
 
 ### Watch
 
@@ -208,7 +273,52 @@ form.error(name: string): string;
 - No need to wrap in `van.derive()` 🙂
 
 ```typescript
-form.watch(...names: string[]): State<{}>
+const form = new Form({
+  initialValues: {
+    name: "Kwame",
+    age: 28,
+    foo: true
+  },
+});
+
+const full = form.watch();
+const partial = form.watch("name", "age");
+
+return div(
+  p(() => `Full data: ${JSON.stringify(full)}`), // Renders: Full data { "name": "Kwame", "age": 28, "foo": true }
+  p(() => `Partial data: ${JSON.stringify(partial)}`), // Renders: Partial data { "name": "Kwame", "age": 28 }
+);
+```
+
+### Errors
+
+- Returns a reactive object containing the specified field errors
+- No need to wrap in `van.derive()` 🙂
+
+```typescript
+const form = new Form({
+  initialValues: {
+    name: "Kwame",
+    age: 28,
+    foo: true
+  },
+  validator: yupValidator(
+    yup.object({
+      name: yup.string().required("Required").min(6, "Must be more than 6 characters"),
+      age: yup.number().required("Required"),
+      foo: yup.boolean().required("Required"),
+    })
+  ),
+  validationMode: "oninput"
+});
+
+const errors = form.errors();
+const partial = form.errors("name", "age");
+
+return div(
+  p(() => `Full errors: ${JSON.stringify(errors)}`), // Renders: Full errors { "name": "Must be more than 6 characters", "age": "", "foo": "" }
+  p(() => `Partial errors: ${JSON.stringify(partial)}`), // Renders: Partial errors { "name": "Must be more than 6 characters", "age": "" }
+);
 ```
 
 ### Reset
@@ -216,8 +326,17 @@ form.watch(...names: string[]): State<{}>
 - Resets a form field or the entire form
 
 ```typescript
-form.reset(...name: string[]): void // Reset specific fields
-form.reset(): void // Reset entire form
+const form = new Form({
+  initialValues: {
+    name: "Kwame",
+    age: 28,
+    foo: true
+  }
+});
+
+form.reset("name"); // Reset name field
+form.reset("name", "age"); // Reset name and fields
+form.reset(); // Reset all fields
 ```
 
 ### Handle submit
@@ -227,7 +346,22 @@ form.reset(): void // Reset entire form
 - Returns a new function to be passed to the form element
 
 ```typescript
-form.handleSubmit((values: T) => void): (values: T) => void
+const form = new Form({
+  initialValues: {
+    name: "Kwame",
+    age: 28,
+    foo: true
+  }
+});
+
+const handleSubmit = form.handleSubmit((values) => {
+  console.log(values);
+});
+
+return form(
+  { onsubmit: handleSubmit },
+  // ... Form children
+)
 ```
 
 ## Contributors
@@ -236,5 +370,7 @@ form.handleSubmit((values: T) => void): (values: T) => void
 
 ## Changelog
 
-- 1.0.2 (Current)
+- 1.1.0 (Current)
+  - Added `Form.errors()` method
+- 1.0.2
   - Disabled call to `form.validateField` on `form.reset` to avoid errors on form reset
