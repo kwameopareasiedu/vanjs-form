@@ -2,6 +2,7 @@ import "./index.css";
 import van, { ChildDom, Props } from "vanjs-core";
 import { Form, yupValidator } from "vanjs-form";
 import * as yup from "yup";
+import { ValidationError } from "yup";
 
 const { div, form: formEl, input, h1, select, option, button, label, p } = van.tags;
 
@@ -12,7 +13,7 @@ export default function App() {
       range: 30,
       select: "",
       radio: "",
-      checkbox: false
+      checkbox: true,
     },
     validator: yupValidator(
       yup.object({
@@ -20,13 +21,17 @@ export default function App() {
         range: yup.number().min(50, "Range must be at least 50"),
         select: yup.string().required("Required"),
         radio: yup.string().required("Required"),
-        checkbox: yup.boolean().required("Required").isTrue("Must be set")
-      })
+        checkbox: yup
+          .boolean()
+          .required("Required")
+          .test((val) => (!val ? new ValidationError("Must be set", val, "checkbox") : true)),
+      }),
     ),
-    validationMode: "oninput"
+    validationMode: "oninput",
   });
 
   const data = form.watch("input", "range", "select", "radio", "checkbox");
+  const errors = form.errors("input", "range", "select", "radio", "checkbox");
 
   const alertValues = () => {
     const input = form.get("input");
@@ -50,84 +55,88 @@ export default function App() {
       { className: "flex flex-col gap-2", onsubmit: handleSubmit },
       Field(
         {
-          error: () => form.error("input"),
+          error: () => errors.val.input,
           onreset: () => form.reset("input"),
-          onsetrnd: () => form.set("input", generateRandomString(6))
+          onsetrnd: () => form.set("input", generateRandomString(6)),
         },
         input(
           form.register("input", {
             type: "text",
-            className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 w-full",
+            // className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 w-full",
+            className: () =>
+              form.error("input")
+                ? "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 w-full"
+                : "px-2 py-1 border-2 border-red-200 rounded outline-none w-full",
             placeholder: "Input field",
-            autofocus: true
-          })
-        )
+            autofocus: true,
+          }),
+        ),
       ),
       Field(
         {
           error: () => form.error("range"),
           onreset: () => form.reset("range"),
-          onsetrnd: () => form.set("range", parseInt((100 * Math.random()) as never as string))
+          onsetrnd: () => form.set("range", ~~(100 * Math.random())),
         },
         input(
           form.register("range", {
             type: "range",
-            className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 w-full"
-          })
-        )
+            className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 w-full",
+          }),
+        ),
       ),
       Field(
         {
           error: () => form.error("select"),
           onreset: () => form.reset("select"),
-          onsetrnd: () => form.set("select", cycleOptions("cappuccino", "espresso", form.get("select")))
+          onsetrnd: () => form.set("select", cycleOptions("cappuccino", "espresso", form.get("select"))),
         },
         select(
           form.register("select", {
-            className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 w-full"
+            className: "px-2 py-1 border-2 border-blue-200 rounded outline-none focus:border-blue-500 w-full",
           }),
           option({ value: "" }, "Select..."),
           option({ value: "cappuccino" }, "Cappuccino"),
-          option({ value: "espresso" }, "Espresso")
-        )
+          option({ value: "espresso" }, "Espresso"),
+        ),
       ),
       Field(
         {
           error: () => form.error("radio"),
           onreset: () => form.reset("radio"),
-          onsetrnd: () => form.set("radio", cycleOptions("chai", "herbal", form.get("radio")))
+          onsetrnd: () => form.set("radio", cycleOptions("chai", "herbal", form.get("radio"))),
         },
         div(
           { className: "flex gap-2" },
           label(
             { className: "flex gap-1" },
             input(form.register("radio", { type: "radio", value: "chai" })),
-            "Chai Tea"
+            "Chai Tea",
           ),
           label(
             { className: "flex gap-1" },
             input(form.register("radio", { type: "radio", value: "herbal" })),
-            "Herbal Tea"
-          )
-        )
+            "Herbal Tea",
+          ),
+        ),
       ),
       Field(
         {
           error: () => form.error("checkbox"),
           onreset: () => form.reset("checkbox"),
-          onsetrnd: () => form.set("checkbox", cycleOptions(true, false, form.get("checkbox")))
+          onsetrnd: () => form.set("checkbox", cycleOptions(true, false, form.get("checkbox"))),
         },
-        label({ className: "flex gap-1" }, input(form.register("checkbox", { type: "checkbox" })), "Do you even Van?")
+        label({ className: "flex gap-1" }, input(form.register("checkbox", { type: "checkbox" })), "Do you even Van?"),
       ),
-      Button({ type: "submit" }, "Submit")
+      Button({ type: "submit" }, "Submit"),
     ),
     p(
       { className: "text-sm text-gray-500 font-mono" },
       () =>
-        `{ Input: ${data.val.input}, Range: ${data.val.range}, Select: ${data.val.select}, Radio: ${data.val.radio}, Checkbox: ${data.val.checkbox} }`
+        `{ Input: ${data.val.input}, Range: ${data.val.range}, Select: ${data.val.select}, Radio: ${data.val.radio}, Checkbox: ${data.val.checkbox} }`,
     ),
     Button({ onclick: () => form.reset() }, "Reset"),
-    Button({ onclick: alertValues }, "Alert")
+    Button({ onclick: alertValues }, "Alert"),
   );
 }
 
@@ -143,7 +152,7 @@ const Button = (propsOrChild: Props | ChildDom, ...children: ChildDom[]) => {
     return button(
       { className: "px-2 py-1 text-sm rounded bg-blue-500 text-white w-auto" },
       propsOrChild as ChildDom,
-      ...children
+      ...children,
     );
   }
 };
@@ -154,10 +163,10 @@ const Field = ({ error, className, onreset, onsetrnd, ...rest }: FieldProps, chi
   return div(
     { ...(rest as HTMLDivElement), className: `flex gap-2 items-center ${className ?? ""}` },
     div({ className: "flex-1 flex-col gap-1" }, child, () =>
-      error ? p({ className: "text-sm text-rose-600 italic" }, error) : null
+      error ? p({ className: "text-sm text-rose-600 italic" }, error) : null,
     ),
     Button({ type: "button", onclick: onreset }, "Reset"),
-    Button({ type: "button", onclick: onsetrnd }, "Set Rnd")
+    Button({ type: "button", onclick: onsetrnd }, "Set Rnd"),
   );
 };
 
