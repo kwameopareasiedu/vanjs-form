@@ -187,10 +187,25 @@ form.handleSubmit();
   element's props
 
 ```typescript
-form.register(
-  name, // string
-  additionalProps // Partial<HTMLElement>
-); // HTMLElement Props;
+const form = new Form({
+  initialValues: {
+    name: "Kwame",
+    age: 28,
+    foo: true,
+    location: ""
+  }
+});
+
+return div(
+  input(form.register("name", { type: "text", placeholder: "Enter your name" })),
+  input(form.register("age", { type: "number", min: 0, max: 100 })),
+  input(form.register("foo", { type: "checkbox" })),
+  select(
+    form.register("select"),
+    option({ value: "home" }, "Home"),
+    option({ value: "work" }, "Work")
+  )
+);
 ```
 
 ### Get
